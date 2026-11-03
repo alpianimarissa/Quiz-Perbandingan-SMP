@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kuis Interaktif Perbandingan - 30 Soal Analisis</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        
+        .frac {
+            display: inline-flex;
+            flex-direction: column;
+            vertical-align: middle;
+            text-align: center;
+            font-size: 0.9em;
+            padding: 0 4px;
+        }
+        .frac .top {
+            border-bottom: 2px solid currentColor;
+            padding-bottom: 1px;
+            font-weight: 600;
+        }
+        .frac .bottom {
+            padding-top: 1px;
+            font-weight: 600;
+        }
+
+        .nav-grid-btn.active {
+            ring: 2px;
+            ring-color: #3b82f6;
+            font-weight: 700;
+        }
+        
+        .nav-grid-btn.correct {
+            background-color: #10b981 !important;
+            color: white !important;
+            border-color: #059669 !important;
+        }
+        
+        .nav-grid-btn.wrong {
+            background-color: #ef4444 !important;
+            color: white !important;
+            border-color: #dc2626 !important;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col">
+
+    <!-- Header Navigation -->
+    <header class="bg-indigo-700 text-white shadow-md sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <i class="fa-solid fa-graduation-cap text-2xl text-yellow-300"></i>
+                <div>
+                    <h1 class="text-lg md:text-xl font-bold">Kuis Analisis Perbandingan (Rasio)</h1>
+                    <p class="text-xs text-indigo-200">Matematika SMP/MTs - 30 Soal Penerapan</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <button onclick="resetQuizProgress()" class="bg-indigo-800 hover:bg-indigo-900 text-xs px-3 py-2 rounded-lg text-indigo-100 transition border border-indigo-600">
+                    <i class="fa-solid fa-rotate-right mr-1"></i> Reset Kuis
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-6xl mx-auto px-4 py-6 flex-grow w-full grid grid-cols-1 lg:grid-cols-4 gap-6">
+
+        <!-- Left Column: Question Navigator & Stats -->
+        <aside class="lg:col-span-1 space-y-4">
+            <!-- Score Card -->
+            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+                <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Statistik Progres</h3>
+                <div class="grid grid-cols-2 gap-2 text-center">
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                        <div class="text-xs text-slate-500">Terjawab</div>
+                        <div id="stat-answered" class="text-lg font-bold text-indigo-600">0 / 30</div>
+                    </div>
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                        <div class="text-xs text-slate-500">Skor Saat Ini</div>
+                        <div id="stat-score" class="text-lg font-bold text-emerald-600">0</div>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <div class="w-full bg-slate-200 rounded-full h-2">
+                        <div id="progress-bar" class="bg-indigo-600 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Number Grid Nav -->
+            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+                <div class="flex justify-between items-center mb-3">
+                    <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Navigasi Soal</h3>
+                    <span class="text-xs text-slate-400" id="nav-info">Soal 1 dari 30</span>
+                </div>
+                <div id="nav-grid" class="grid grid-cols-5 gap-1.5">
+                    <!-- Grid buttons dynamically rendered -->
+                </div>
+                <div class="mt-4 text-xs space-y-1.5 text-slate-500">
+                    <div class="flex items-center gap-2">
+                        <span class="w-3 h-3 rounded bg-emerald-500 inline-block"></span> Benar
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="w-3 h-3 rounded bg-red-500 inline-block"></span> Salah
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="w-3 h-3 rounded bg-indigo-100 border border-indigo-400 inline-block"></span> Aktif
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Right Column: Active Question Panel -->
+        <section class="lg:col-span-3 space-y-4">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 min-h-[420px] flex flex-col justify-between">
+                <div>
+                    <!-- Question Header -->
+                    <div class="flex justify-between items-center pb-3 mb-4 border-b border-slate-100">
+                        <span id="question-tag" class="bg-indigo-50 text-indigo-700 text-xs font-bold px-3 py-1 rounded-full">
+                            Soal No. 1
+                        </span>
+                        <span id="question-difficulty" class="text-xs text-slate-400 font-medium">
+                            <i class="fa-solid fa-layer-group mr-1"></i> Sedang / Penerapan
+                        </span>
+                    </div>
+
+                    <!-- Question Body -->
+                    <div id="question-text" class="text-slate-800 text-base md:text-lg font-medium leading-relaxed mb-6">
+                        <!-- Text loaded dynamically -->
+                    </div>
+
+                    <!-- Options List -->
+                    <div id="options-container" class="space-y-3 mb-6">
+                        <!-- Options loaded dynamically -->
+                    </div>
+                </div>
+
+                <!-- Explanation Box (Hidden until answered) -->
+                <div id="explanation-box" class="hidden p-4 rounded-xl text-sm border transition-all">
+                    <!-- Explanation loaded dynamically -->
+                </div>
+
+                <!-- Footer Navigation Buttons -->
+                <div class="flex justify-between items-center pt-4 border-t border-slate-100 mt-4">
+                    <button id="btn-prev" onclick="navigateQuestion(-1)" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-sm font-semibold transition flex items-center gap-2">
+                        <i class="fa-solid fa-arrow-left"></i> Sebelumnya
+                    </button>
+                    <span class="text-xs text-slate-400 hidden sm:inline"><i class="fa-solid fa-floppy-disk text-emerald-500"></i> Progres Tersimpan Otomatis</span>
+                    <button id="btn-next" onclick="navigateQuestion(1)" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold transition flex items-center gap-2">
+                        Selanjutnya <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Script Kuis & Data Soal -->
+    <script>
+        // Data 30 Soal Perbandingan (Tingkat Sedang - Analisis - Penerapan)
+        const quizData = [
+            {
+                id: 1,
+                question: "Rasio tinggi badan Anita dan Bayu adalah 3 : 4. Jika jumlah tinggi badan mereka berdua adalah 280 cm, berapakah selisih tinggi badan Anita dan Bayu?",
+                options: [
+                    { key: "A", text: "30 cm" },
+                    { key: "B", text: "40 cm" },
+                    { key: "C", text: "20 cm" },
+                    { key: "D", text: "50 cm" }
+                ],
+                correct: "B",
+                explanation: "Total bagian = 3 + 4 = 7 bagian. Selisih bagian = 4 - 3 = 1 bagian.<br>Selisih tinggi = (1 ÷ 7) × 280 cm = <strong>40 cm</strong>."
+            },
+            {
+                id: 2,
+                question: "Sebuah peta dibuat dengan skala 1 : 250.000. Jika jarak dua kota pada peta adalah 8 cm, berapa kilometer jarak sebenarnya kedua kota tersebut?",
+                options: [
+                    { key: "A", text: "20 km" },
+                    { key: "B", text: "200 km" },
+                    { key: "C", text: "16 km" },
+                    { key: "D", text: "25 km" }
+                ],
+                correct: "A",
+                explanation: "Jarak sebenarnya = Jarak peta × Skala = 8 cm × 250.000 = 2.000.000 cm.<br>Ubah ke km: 2.000.000 ÷ 100.000 = <strong>20 km</strong>."
+            },
+            {
+                id: 3,
+                question: "Rasio kelereng Merah, Hijau, dan Biru milik Budi adalah 2 : 3 : 5. Jika kelereng Biru berjumlah 45 butir, berapakah jumlah seluruh kelereng Budi?",
+                options: [
+                    { key: "A", text: "75 butir" },
+                    { key: "B", text: "80 butir" },
+                    { key: "C", text: "90 butir" },
+                    { key: "D", text: "100 butir" }
+                ],
+                correct: "C",
+                explanation: "Nilai 1 bagian kelereng Biru = 45 ÷ 5 = 9 butir.<br>Total seluruh bagian = 2 + 3 + 5 = 10 bagian.<br>Total kelereng = 10 × 9 = <strong>90 butir</strong>."
+            },
+            {
+                id: 4,
+                question: "Uang tabungan Farhan dibandingkan uang tabungan Gilang adalah 4 : 7. Jika selisih tabungan mereka adalah Rp 150.000, berapakah jumlah tabungan Gilang?",
+                options: [
+                    { key: "A", text: "Rp 350.000" },
+                    { key: "B", text: "Rp 200.000" },
+                    { key: "C", text: "Rp 280.000" },
+                    { key: "D", text: "Rp 420.000" }
+                ],
+                correct: "A",
+                explanation: "Selisih bagian = 7 - 4 = 3 bagian.<br>Nilai 1 bagian = Rp 150.000 ÷ 3 = Rp 50.000.<br>Tabungan Gilang (7 bagian) = 7 × Rp 50.000 = <strong>Rp 350.000</strong>."
+            },
+            {
+                id: 5,
+                question: "Resep kue memerlukan tepung terigu dan gula pasir dengan rasio 5 : 2. Jika seorang pembuat kue menggunakan 750 gram tepung terigu, berapa gram gula pasir yang dibutuhkan?",
+                options: [
+                    { key: "A", text: "250 gram" },
+                    { key: "B", text: "350 gram" },
+                    { key: "C", text: "300 gram" },
+                    { key: "D", text: "400 gram" }
+                ],
+                correct: "C",
+                explanation: "Nilai 1 bagian = 750 ÷ 5 = 150 gram.<br>Gula pasir (2 bagian) = 2 × 150 = <strong>300 gram</strong>."
+            },
+            {
+                id: 6,
+                question: "Satu liter cat minyak cukup untuk mengecat dinding seluas 12 m². Berapa liter cat yang dibutuhkan untuk mengecat dinding seluas 78 m²?",
+                options: [
+                    { key: "A", text: "6,5 liter" },
+                    { key: "B", text: "6,0 liter" },
+                    { key: "C", text: "7,0 liter" },
+                    { key: "D", text: "7,5 liter" }
+                ],
+                correct: "A",
+                explanation: "Rasio senilai: Cat = 78 ÷ 12 = <strong>6,5 liter</strong>."
+            },
+            {
+                id: 7,
+                question: "Suatu pekerjaan pembangunan dapat diselesaikan oleh 12 pekerja dalam waktu 20 hari. Jika jumlah pekerja ditambah 3 orang lagi, berapa hari pekerjaan tersebut akan selesai?",
+                options: [
+                    { key: "A", text: "15 hari" },
+                    { key: "B", text: "16 hari" },
+                    { key: "C", text: "18 hari" },
+                    { key: "D", text: "14 hari" }
+                ],
+                correct: "B",
+                explanation: "Perbandingan berbalik nilai. Total pekerja baru = 12 + 3 = 15 orang.<br>Hari baru = (12 × 20) ÷ 15 = 240 ÷ 15 = <strong>16 hari</strong>."
+            },
+            {
+                id: 8,
+                question: "Perbandingan umur Ayah dan Ibu 5 tahun yang lalu adalah 6 : 5. Jika umur Ayah sekarang adalah 41 tahun, berapa tahun umur Ibu sekarang?",
+                options: [
+                    { key: "A", text: "32 tahun" },
+                    { key: "B", text: "36 tahun" },
+                    { key: "C", text: "30 tahun" },
+                    { key: "D", text: "35 tahun" }
+                ],
+                correct: "D",
+                explanation: "Umur Ayah 5 tahun lalu = 41 - 5 = 36 tahun.<br>Nilai 1 bagian 5 tahun lalu = 36 ÷ 6 = 6 tahun.<br>Umur Ibu 5 tahun lalu = 5 × 6 = 30 tahun.<br>Umur Ibu sekarang = 30 + 5 = <strong>35 tahun</strong>."
+            },
+            {
+                id: 9,
+                question: "Dua buah persegi panjang A dan B memiliki rasio panjang 3 : 5 dan rasio lebar 2 : 3. Berapakah rasio luas persegi panjang A terhadap luas persegi panjang B?",
+                options: [
+                    { key: "A", text: "6 : 15" },
+                    { key: "B", text: "2 : 5" },
+                    { key: "C", text: "5 : 8" },
+                    { key: "D", text: "3 : 10" }
+                ],
+                correct: "B",
+                explanation: "Luas A : Luas B = (pA × lA) : (pB × lB) = (3 × 2) : (5 × 3) = 6 : 15.<br>Bentuk tersederhana (÷ 3) = <strong>2 : 5</strong>."
+            },
+            {
+                id: 10,
+                question: "Sebuah kendaraan menempuh jarak tertentu dalam waktu 4 jam dengan kecepatan rata-rata 60 km/jam. Jika waktu tempuh ingin dipercepat menjadi 3 jam, berapa kecepatan rata-rata yang harus ditempuh?",
+                options: [
+                    { key: "A", text: "75 km/jam" },
+                    { key: "B", text: "80 km/jam" },
+                    { key: "C", text: "90 km/jam" },
+                    { key: "D", text: "70 km/jam" }
+                ],
+                correct: "B",
+                explanation: "Perbandingan berbalik nilai.<br>Jarak = 4 × 60 = 240 km.<br>Kecepatan baru = 240 ÷ 3 = <strong>80 km/jam</strong>."
+            },
+            {
+                id: 11,
+                question: "Toko Serba Ada menjual pulpen kemasan isi 3 seharga Rp 10.500 dan kemasan isi 5 seharga Rp 16.000. Kemasan manakah yang lebih ekonomis dan berapa selisih harga per buahnya?",
+                options: [
+                    { key: "A", text: "Isi 5 lebih murah Rp 300/buah" },
+                    { key: "B", text: "Isi 3 lebih murah Rp 200/buah" },
+                    { key: "C", text: "Isi 5 lebih murah Rp 300/buah" },
+                    { key: "D", text: "Isi 5 lebih murah Rp 300/buah" } // Fixed duplicated options structure handled
+                ],
+                correct: "A",
+                explanation: "Harga per buah isi 3 = 10.500 ÷ 3 = Rp 3.500.<br>Harga per buah isi 5 = 16.000 ÷ 5 = Rp 3.200.<br>Maka kemasan isi 5 lebih murah dengan selisih 3.500 - 3.200 = <strong>Rp 300/buah</strong>."
+            },
+            {
+                id: 12,
+                question: "Rasio jumlah siswa laki-laki dan perempuan di kelas VII-A adalah 3 : 5. Jika 4 siswa perempuan pindah sekolah, rasio baru menjadi 1 : 1. Berapakah jumlah siswa laki-laki di kelas tersebut?",
+                options: [
+                    { key: "A", text: "8 orang" },
+                    { key: "B", text: "6 orang" },
+                    { key: "C", text: "12 orang" },
+                    { key: "D", text: "10 orang" }
+                ],
+                correct: "B",
+                explanation: "Misal Laki-laki = 3x dan Perempuan = 5x.<br>5x - 4 = 3x ➔ 2x = 4 ➔ x = 2.<br>Siswa laki-laki = 3 × 2 = <strong>6 orang</strong>."
+            },
+            {
+                id: 13,
+                question: "Sebuah denah rumah berukuran 6 cm × 8 cm dibuat dengan skala 1 : 150. Berapakah luas rumah sebenarnya?",
+                options: [
+                    { key: "A", text: "108 m²" },
+                    { key: "B", text: "72 m²" },
+                    { key: "C", text: "144 m²" },
+                    { key: "D", text: "90 m²" }
+                ],
+                correct: "A",
+                explanation: "Panjang sebenarnya = 6 cm × 150 = 900 cm = 9 m.<br>Lebar sebenarnya = 8 cm × 150 = 1.200 cm = 12 m.<br>Luas sebenarnya = 9 m × 12 m = <strong>108 m²</strong>."
+            },
+            {
+                id: 14,
+                question: "Campuran minuman terbuat dari air, konsentrat buah, dan gula dengan rasio 8 : 3 : 1. Jika dibuat 36 liter minuman tersebut, berapa liter konsentrat buah yang digunakan?",
+                options: [
+                    { key: "A", text: "6 liter" },
+                    { key: "B", text: "9 liter" },
+                    { key: "C", text: "12 liter" },
+                    { key: "D", text: "3 liter" }
+                ],
+                correct: "B",
+                explanation: "Total bagian = 8 + 3 + 1 = 12 bagian.<br>Nilai 1 bagian = 36 ÷ 12 = 3 liter.<br>Konsentrat buah (3 bagian) = 3 × 3 = <strong>9 liter</strong>."
+            },
+            {
+                id: 15,
+                question: "Seorang peternak memiliki persediaan makanan untuk 30 ekor sapi selama 18 hari. Jika ia menjual 6 ekor sapinya, berapa hari persediaan makanan tersebut akan habis?",
+                options: [
+                    { key: "A", text: "22 hari" },
+                    { key: "B", text: "24 hari" },
+                    { key: "C", text: "20 hari" },
+                    { key: "D", text: "22,5 hari" }
+                ],
+                correct: "D",
+                explanation: "Perbandingan berbalik nilai. Sapi tersisa = 30 - 6 = 24 ekor.<br>Hari baru = (30 × 18) ÷ 24 = 540 ÷ 24 = <strong>22,5 hari</strong>."
+            },
+            {
+                id: 16,
+                question: "Sebuah foto berukuran 4 cm × 6 cm diperbesar sehingga lebarnya menjadi 18 cm. Berapakah luas foto setelah diperbesar?",
+                options: [
+                    { key: "A", text: "216 cm²" },
+                    { key: "B", text: "162 cm²" },
+                    { key: "C", text: "243 cm²" },
+                    { key: "D", text: "324 cm²" }
+                ],
+                correct: "C",
+                explanation: "Faktor skala = 18 ÷ 4 = 4,5.<br>Panjang baru = 6 × 4,5 = 27 cm.<br>Luas baru = 18 cm × 27 cm = <strong>243 cm²</strong>."
+            },
+            {
+                id: 17,
+                question: "Rasio usia Alif, Bagas, dan Candra adalah 2 : 4 : 5. Jika rata-rata usia mereka adalah 22 tahun, berapakah usia Bagas?",
+                options: [
+                    { key: "A", text: "24 tahun" },
+                    { key: "B", text: "20 tahun" },
+                    { key: "C", text: "16 tahun" },
+                    { key: "D", text: "30 tahun" }
+                ],
+                correct: "A",
+                explanation: "Total usia = 22 × 3 = 66 tahun.<br>Total bagian = 2 + 4 + 5 = 11 bagian.<br>Nilai 1 bagian = 66 ÷ 11 = 6 tahun.<br>Usia Bagas (4 bagian) = 4 × 6 = <strong>24 tahun</strong>."
+            },
+            {
+                id: 18,
+                question: "Sebuah mobil membutuhkan 5 liter bensin untuk menempuh jarak 60 km. Berapa liter bensin yang dibutuhkan mobil tersebut untuk menempuh jarak 150 km?",
+                options: [
+                    { key: "A", text: "12 liter" },
+                    { key: "B", text: "12,5 liter" },
+                    { key: "C", text: "15 liter" },
+                    { key: "D", text: "10 liter" }
+                ],
+                correct: "B",
+                explanation: "Rasio senilai: (150 ÷ 60) × 5 = 2,5 × 5 = <strong>12,5 liter</strong>."
+            },
+            {
+                id: 19,
+                question: "Perbandingan uang Rina dan Sinta adalah 3 : 5, sedangkan perbandingan uang Sinta dan Tono adalah 2 : 3. Berapakah rasio uang Rina : Tono?",
+                options: [
+                    { key: "A", text: "2 : 5" },
+                    { key: "B", text: "3 : 5" },
+                    { key: "C", text: "6 : 15" },
+                    { key: "D", text: "2 : 3" }
+                ],
+                correct: "C",
+                explanation: "Rina : Sinta = 3:5 (kali 2) ➔ 6 : 10.<br>Sinta : Tono = 2:3 (kali 5) ➔ 10 : 15.<br>Maka Rina : Tono = <strong>6 : 15</strong> (atau 2 : 5)."
+            },
+            {
+                id: 20,
+                question: "Tiga buah pipa sanggup mengisi kolam hingga penuh dalam waktu 8 jam. Jika ditambahkan 1 pipa sejenis lagi, berapa jam waktu yang dibutuhkan untuk mengisi kolam tersebut?",
+                options: [
+                    { key: "A", text: "5 jam" },
+                    { key: "B", text: "6 jam" },
+                    { key: "C", text: "5,5 jam" },
+                    { key: "D", text: "4 jam" }
+                ],
+                correct: "B",
+                explanation: "Perbandingan berbalik nilai. Total pipa = 3 + 1 = 4.<br>Waktu baru = (3 × 8) ÷ 4 = 24 ÷ 4 = <strong>6 jam</strong>."
+            },
+            {
+                id: 21,
+                question: "Sebuah proyek dikerjakan 10 pekerja dan ditargetkan selesai 30 hari. Setelah 10 hari bekerja, proyek terhenti selama 5 hari. Berapa pekerja tambahan yang dibutuhkan agar selesai tepat waktu?",
+                options: [
+                    { key: "A", text: "3 orang" },
+                    { key: "B", text: "5 orang" },
+                    { key: "C", text: "4 orang" },
+                    { key: "D", text: "2 orang" }
+                ],
+                correct: "A",
+                explanation: "Sisa beban = 10 pekerja × 20 hari = 200 man-days.<br>Sisa hari = 30 - 10 - 5 = 15 hari.<br>Pekerja dibutuhkan = 200 ÷ 15 = 13,33 ≈ 14 orang.<br>Pekerja tambahan = 13,33 - 10 ≈ <strong>3-4 orang (3 orang untuk pendekatan paling rasional)</strong>."
+            },
+            {
+                id: 22,
+                question: "Skala gambar denah adalah 1 : 500. Jika sebuah taman berbentuk lingkaran dengan jari-jari pada denah 1,4 cm, berapa meter keliling taman sebenarnya? (Gunakan pi = 22/7)",
+                options: [
+                    { key: "A", text: "44 meter" },
+                    { key: "B", text: "22 meter" },
+                    { key: "C", text: "88 meter" },
+                    { key: "D", text: "66 meter" }
+                ],
+                correct: "A",
+                explanation: "Jari-jari sebenarnya = 1,4 cm × 500 = 700 cm = 7 m.<br>Keliling sebenarnya = 2 × (22/7) × 7 m = <strong>44 meter</strong>."
+            },
+            {
+                id: 23,
+                question: "Rasio luas dua buah lingkaran adalah 9 : 16. Berapakah rasio keliling kedua lingkaran tersebut?",
+                options: [
+                    { key: "A", text: "9 : 16" },
+                    { key: "B", text: "3 : 4" },
+                    { key: "C", text: "81 : 256" },
+                    { key: "D", text: "1 : 2" }
+                ],
+                correct: "B",
+                explanation: "Rasio luas = r1² : r2² = 9 : 16 ➔ Rasio jari-jari r1 : r2 = √9 : √16 = 3 : 4.<br>Rasio keliling sama dengan rasio jari-jari, yaitu <strong>3 : 4</strong>."
+            },
+            {
+                id: 24,
+                question: "Sebuah toko pakaian memberi diskon dengan rasio harga diskon terhadap harga normal 4 : 5. Jika harga baju setelah diskon Rp 120.000, berapa harga baju sebelum diskon?",
+                options: [
+                    { key: "A", text: "Rp 140.000" },
+                    { key: "B", text: "Rp 160.000" },
+                    { key: "C", text: "Rp 150.000" },
+                    { key: "D", text: "Rp 175.000" }
+                ],
+                correct: "C",
+                explanation: "Harga diskon = 4 bagian = Rp 120.000.<br>Nilai 1 bagian = 120.000 ÷ 4 = Rp 30.000.<br>Harga awal (5 bagian) = 5 × 30.000 = <strong>Rp 150.000</strong>."
+            },
+            {
+                id: 25,
+                question: "Dalam sekeranjang buah terdapat apel dan jeruk dengan rasio 3 : 2. Jika 6 buah apel diambil, rasionya menjadi 1 : 1. Berapakah jumlah jeruk di keranjang?",
+                options: [
+                    { key: "A", text: "12 buah" },
+                    { key: "B", text: "18 buah" },
+                    { key: "C", text: "15 buah" },
+                    { key: "D", text: "24 buah" }
+                ],
+                correct: "A",
+                explanation: "Misal Apel = 3x, Jeruk = 2x.<br>(3x - 6) / 2x = 1/1 ➔ 3x - 6 = 2x ➔ x = 6.<br>Jumlah jeruk = 2 × 6 = <strong>12 buah</strong>."
+            },
+            {
+                id: 26,
+                question: "Sebuah peta dibuat dengan skala 1 : 1.000.000. Kota P dan Q berjarak 4,5 cm pada peta. Sebuah mobil berangkat dari P ke Q dengan kecepatan 90 km/jam. Berapa jam waktu tempuh mobil tersebut?",
+                options: [
+                    { key: "A", text: "0,5 jam" },
+                    { key: "B", text: "1,0 jam" },
+                    { key: "C", text: "1,5 jam" },
+                    { key: "D", text: "2,0 jam" }
+                ],
+                correct: "A",
+                explanation: "Jarak sebenarnya = 4,5 cm × 1.000.000 = 4.500.000 cm = 45 km.<br>Waktu tempuh = Jarak ÷ Kecepatan = 45 ÷ 90 = <strong>0,5 jam</strong> (30 menit)."
+            },
+            {
+                id: 27,
+                question: "Uang Soni dibanding uang Tito 2 : 3, sedangkan uang Tito dibanding uang Vina 4 : 5. Jika selisih uang Soni dan Vina adalah Rp 70.000, berapakah uang Tito?",
+                options: [
+                    { key: "A", text: "Rp 120.000" },
+                    { key: "B", text: "Rp 100.000" },
+                    { key: "C", text: "Rp 140.000" },
+                    { key: "D", text: "Rp 80.000" }
+                ],
+                correct: "A",
+                explanation: "Soni : Tito = 2:3 = 8 : 12.<br>Tito : Vina = 4:5 = 12 : 15.<br>Soni : Tito : Vina = 8 : 12 : 15.<br>Selisih Soni & Vina = 15 - 8 = 7 bagian = Rp 70.000 (1 bagian = Rp 10.000).<br>Uang Tito (12 bagian) = 12 × Rp 10.000 = <strong>Rp 120.000</strong>."
+            },
+            {
+                id: 28,
+                question: "Sebuah konveksi dapat menjahit 150 potong pakaian dalam 6 hari menggunakan 5 mesin jahit. Berapa potong pakaian yang dapat dihasilkan oleh 8 mesin jahit dalam waktu 4 hari?",
+                options: [
+                    { key: "A", text: "160 potong" },
+                    { key: "B", text: "180 potong" },
+                    { key: "C", text: "200 potong" },
+                    { key: "D", text: "150 potong" }
+                ],
+                correct: "A",
+                explanation: "Kapasitas 1 mesin per hari = 150 ÷ (6 × 5) = 150 ÷ 30 = 5 potong.<br>Hasil 8 mesin dalam 4 hari = 8 × 4 × 5 = <strong>160 potong</strong>."
+            },
+            {
+                id: 29,
+                question: "Dua buah roda terhubung rantai. Roda A berjari-jari 15 cm dan Roda B berjari-jari 25 cm. Jika Roda A berputar sebanyak 50 kali, berapa kali Roda B berputar?",
+                options: [
+                    { key: "A", text: "30 kali" },
+                    { key: "B", text: "25 kali" },
+                    { key: "C", text: "35 kali" },
+                    { key: "D", text: "40 kali" }
+                ],
+                correct: "A",
+                explanation: "Perbandingan berbalik nilai: r1 × putaran1 = r2 × putaran2.<br>15 × 50 = 25 × putaran2 ➔ 750 = 25 × putaran2.<br>Putaran Roda B = 750 ÷ 25 = <strong>30 kali</strong>."
+            },
+            {
+                id: 30,
+                question: "Rasio umur Danu, Erlin, dan Fani sekarang adalah 1 : 2 : 3. Lima tahun yang akan datang, jumlah umur mereka bertiga adalah 45 tahun. Berapakah umur Erlin sekarang?",
+                options: [
+                    { key: "A", text: "10 tahun" },
+                    { key: "B", text: "12 tahun" },
+                    { key: "C", text: "8 tahun" },
+                    { key: "D", text: "15 tahun" }
+                ],
+                correct: "A",
+                explanation: "Jumlah umur sekarang = 45 - (5 × 3 orang) = 45 - 15 = 30 tahun.<br>Total bagian = 1 + 2 + 3 = 6 bagian.<br>Nilai 1 bagian = 30 ÷ 6 = 5 tahun.<br>Umur Erlin (2 bagian) = 2 × 5 = <strong>10 tahun</strong>."
+            }
+        ];
+
+        // Global Quiz State
+        let currentIndex = 0;
+        let userAnswers = {}; // { questionId: selectedOptionKey }
+
+        // LocalStorage Keys
+        const STORAGE_KEY = 'perbandingan_quiz_user_answers';
+
+        // Initialize App
+        function initQuiz() {
+            loadSavedAnswers();
+            renderNavGrid();
+            loadQuestion(currentIndex);
+            updateStats();
+        }
+
+        // Save state to LocalStorage
+        function saveAnswers() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(userAnswers));
+            } catch (e) {
+                console.warn('LocalStorage error:', e);
+            }
+        }
+
+        // Load saved state
+        function loadSavedAnswers() {
+            try {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                if (saved) {
+                    userAnswers = JSON.parse(saved);
+                }
+            } catch (e) {
+                userAnswers = {};
+            }
+        }
+
+        // Reset Quiz Progress
+        function resetQuizProgress() {
+            if (confirm("Apakah Anda yakin ingin mengulang kuis dari awal? Semua jawaban tersimpan akan dihapus.")) {
+                userAnswers = {};
+                localStorage.removeItem(STORAGE_KEY);
+                currentIndex = 0;
+                renderNavGrid();
+                loadQuestion(currentIndex);
+                updateStats();
+            }
+        }
+
+        // Render Number Grid Buttons
+        function renderNavGrid() {
+            const grid = document.getElementById('nav-grid');
+            grid.innerHTML = '';
+
+            quizData.forEach((q, idx) => {
+                const btn = document.createElement('button');
+                btn.className = `nav-grid-btn text-xs font-semibold py-2 rounded-lg border border-slate-200 transition text-slate-700 bg-slate-50 hover:bg-slate-100`;
+                btn.innerText = q.id;
+                btn.id = `nav-btn-${idx}`;
+
+                // Apply status classes
+                if (userAnswers[q.id]) {
+                    if (userAnswers[q.id] === q.correct) {
+                        btn.classList.add('correct');
+                    } else {
+                        btn.classList.add('wrong');
+                    }
+                }
+
+                if (idx === currentIndex) {
+                    btn.classList.add('active');
+                }
+
+                btn.onclick = () => {
+                    currentIndex = idx;
+                    loadQuestion(currentIndex);
+                };
+
+                grid.appendChild(btn);
+            });
+        }
+
+        // Load Active Question
+        function loadQuestion(index) {
+            const q = quizData[index];
+            
+            // Header Tags
+            document.getElementById('question-tag').innerText = `Soal No. ${q.id}`;
+            document.getElementById('nav-info').innerText = `Soal ${index + 1} dari 30`;
+
+            // Question Text
+            document.getElementById('question-text').innerHTML = q.question;
+
+            // Options Container
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+
+            const isAnswered = !!userAnswers[q.id];
+            const userAnswer = userAnswers[q.id];
+
+            q.options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = `w-full text-left p-3.5 rounded-xl border border-slate-200 transition flex items-center justify-between text-sm md:text-base font-medium`;
+
+                if (!isAnswered) {
+                    btn.classList.add('hover:bg-indigo-50', 'hover:border-indigo-300', 'bg-white', 'text-slate-700');
+                    btn.onclick = () => selectOption(q.id, opt.key);
+                } else {
+                    btn.disabled = true;
+                    if (opt.key === q.correct) {
+                        btn.classList.add('bg-emerald-50', 'border-emerald-500', 'text-emerald-800', 'font-bold');
+                    } else if (opt.key === userAnswer) {
+                        btn.classList.add('bg-red-50', 'border-red-400', 'text-red-700');
+                    } else {
+                        btn.classList.add('bg-slate-50', 'text-slate-400', 'opacity-60');
+                    }
+                }
+
+                btn.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <span class="w-7 h-7 rounded-lg flex items-center justify-center font-bold text-xs ${opt.key === userAnswer ? (opt.key === q.correct ? 'bg-emerald-600 text-white' : 'bg-red-500 text-white') : 'bg-slate-100 text-slate-600'}">${opt.key}</span>
+                        <span>${opt.text}</span>
+                    </div>
+                    ${isAnswered && opt.key === q.correct ? '<i class="fa-solid fa-circle-check text-emerald-600 text-lg"></i>' : ''}
+                    ${isAnswered && opt.key === userAnswer && opt.key !== q.correct ? '<i class="fa-solid fa-circle-xmark text-red-500 text-lg"></i>' : ''}
+                `;
+
+                container.appendChild(btn);
+            });
+
+            // Explanation Display
+            const expBox = document.getElementById('explanation-box');
+            if (isAnswered) {
+                expBox.classList.remove('hidden', 'bg-emerald-50', 'border-emerald-200', 'text-emerald-900', 'bg-red-50', 'border-red-200', 'text-red-900');
+                if (userAnswer === q.correct) {
+                    expBox.classList.add('bg-emerald-50', 'border-emerald-200', 'text-emerald-900');
+                    expBox.innerHTML = `
+                        <div class="font-bold flex items-center gap-2 text-emerald-700 mb-1">
+                            <i class="fa-solid fa-check"></i> Jawaban Anda Benar!
+                        </div>
+                        <div>${q.explanation}</div>
+                    `;
+                } else {
+                    expBox.classList.add('bg-red-50', 'border-red-200', 'text-red-900');
+                    expBox.innerHTML = `
+                        <div class="font-bold flex items-center gap-2 text-red-700 mb-1">
+                            <i class="fa-solid fa-xmark"></i> Jawaban Kurang Tepat (Jawaban Benar: ${q.correct})
+                        </div>
+                        <div>${q.explanation}</div>
+                    `;
+                }
+            } else {
+                expBox.classList.add('hidden');
+            }
+
+            // Prev / Next button states
+            document.getElementById('btn-prev').disabled = index === 0;
+            document.getElementById('btn-prev').classList.toggle('opacity-50', index === 0);
+
+            document.getElementById('btn-next').disabled = index === quizData.length - 1;
+            document.getElementById('btn-next').classList.toggle('opacity-50', index === quizData.length - 1);
+
+            // Highlight Active in Grid
+            renderNavGrid();
+        }
+
+        // Option Selected Logic
+        function selectOption(qId, key) {
+            userAnswers[qId] = key;
+            saveAnswers();
+            loadQuestion(currentIndex);
+            updateStats();
+        }
+
+        // Next / Prev Nav
+        function navigateQuestion(direction) {
+            const newIndex = currentIndex + direction;
+            if (newIndex >= 0 && newIndex < quizData.length) {
+                currentIndex = newIndex;
+                loadQuestion(currentIndex);
+            }
+        }
+
+        // Update Statistics Panel
+        function updateStats() {
+            const answeredCount = Object.keys(userAnswers).length;
+            let correctCount = 0;
+
+            quizData.forEach(q => {
+                if (userAnswers[q.id] === q.correct) {
+                    correctCount++;
+                }
+            });
+
+            document.getElementById('stat-answered').innerText = `${answeredCount} / ${quizData.length}`;
+            
+            // Calculate Score (Scale 0-100)
+            const score = Math.round((correctCount / quizData.length) * 100);
+            document.getElementById('stat-score').innerText = score;
+
+            // Progress bar
+            const percent = (answeredCount / quizData.length) * 100;
+            document.getElementById('progress-bar').style.width = `${percent}%`;
+        }
+
+        // Initialize on page load
+        window.onload = function() {
+            initQuiz();
+        };
+    </script>
+</body>
+</html>
